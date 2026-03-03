@@ -29,9 +29,80 @@
         .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .pdf-title { text-align: center; font-size: 16pt; margin-bottom: 10px; border-bottom: 2px solid #000; }
         .notes-disease { background: #eee; padding: 3px 8px; font-weight: bold; margin-top: 10px; }
+
+
+/* Button Layout */
+#button-container {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+button.disease-trigger {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+button.disease-trigger:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Minimalist Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.syndrome-card {
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.syndrome-card:last-child { border: none; }
+
     </style>
 </head>
 <body>
+<div id="tcmModal" class="modal-overlay" onclick="closeOnBackdrop(event)">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeModal()">&times;</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
 
 <div class="container">
     <div class="top-nav">
@@ -50,29 +121,7 @@
 <div id="pdf-ghost"></div>
 
 <script>
-// Data remains the same as previous
-// const internalMed = [
-//   { "disease": "感冒 (Common Cold)", "syndromes": [
-//       { "name": "風寒證 (Wind-Cold)", "symptoms": ["惡寒重", "發熱輕", "無汗", "頭痛", "肢節痠疼", "鼻塞聲重", "時流清涕", "喉癢", "咳嗽", "痰吐稀薄色白", "口不渴或渴喜熱飲", "舌苔薄白而潤", "脈浮或浮緊"] },
-//       { "name": "風熱證 (Wind-Heat)", "symptoms": ["身熱較著", "微惡風", "汗泄不暢", "頭脹痛", "咳嗽", "痰粘或黃", "咽燥", "咽喉乳蛾紅腫疼痛", "鼻塞", "流黃濁涕", "口渴欲飲", "舌苔薄白微黃", "邊尖紅", "脈象浮數"] },
-//       { "name": "暑濕證 (Summer Heat-Dampness)", "symptoms": ["身熱", "微惡風", "汗少", "肢體痠重或疼痛", "頭昏重脹痛", "咳嗽痰粘", "鼻流濁涕", "心煩", "口渴欲飲或口中粘膩", "渴不多飲", "胸悶", "泛噁", "小便短赤", "舌苔薄黃而膩", "脈濡數"] },
-//       { "name": "氣虛感冒 (Qi Deficiency)", "symptoms": ["惡寒較甚", "發熱", "無汗", "身楚倦怠", "咳嗽", "咯痰無力", "舌苔淡白", "脈浮無力"] },
-//       { "name": "陰虛感冒 (Yin Deficiency)", "symptoms": ["身熱", "微惡風寒", "少汗", "頭昏", "心煩", "口乾", "乾咳痰少", "舌紅少苔", "脈細數"] }
-//   ]},
-//   { "disease": "咳嗽 (Cough)", "syndromes": [
-//       { "name": "風寒襲肺 (Wind-Cold)", "symptoms": ["咳嗽聲重", "氣急", "咽癢", "咳痰稀薄色白", "鼻塞", "流清涕", "頭痛", "肢體痠楚", "惡寒", "發熱", "無汗", "舌苔薄白", "脈浮或浮緊"] },
-//       { "name": "風熱犯肺 (Wind-Heat)", "symptoms": ["咳嗽頻劇", "氣粗", "咳聲嗄啞", "喉燥咽痛", "咯痰不爽", "痰粘稠或稠黃", "咳時汗出", "鼻流黃涕", "口渴", "頭痛", "肢楚", "惡風", "身熱", "舌苔薄黃", "脈浮數 or 浮滑"] },
-//       { "name": "風燥傷肺 (Wind-Dryness)", "symptoms": ["乾咳", "連聲作嗆", "喉癢", "咽喉乾痛", "唇鼻乾燥", "無痰或痰少而粘連成絲", "痰中帶血絲", "口乾", "舌質紅", "乾而少津", "脈浮數 or 小數"] },
-//       { "name": "痰濕蘊肺 (Damp-Phlegm)", "symptoms": ["咳嗽反覆發作", "咳聲重濁", "痰多", "痰粘膩或稠厚成塊", "色白或帶灰色", "早晨或食後咳甚", "胸悶", "脘痞", "嘔噁", "食少", "體倦", "大便時溏", "舌苔白膩", "脈象滑"] },
-//       { "name": "痰熱郁肺 (Phlegm-Heat)", "symptoms": ["咳嗽氣息粗促", "喉中有痰聲", "痰多質粘厚或稠黃", "咯吐不爽", "有熱腥味", "吐血痰", "胸肋脹滿", "咳時引痛", "面赤", "身熱", "口乾欲飲", "舌苔薄黃膩", "質紅", "脈滑數"] },
-//       { "name": "肝火犯肺 (Liver Fire)", "symptoms": ["上氣咳逆陣作", "咳時面赤", "咽乾", "痰滯咽喉", "量少質粘", "胸脇脹痛", "咳時引痛", "口乾苦", "舌苔薄黃少津", "脈象弦數"] },
-//       { "name": "肺陰虧耗 (Lung Yin Deficiency)", "symptoms": ["乾咳", "咳聲短促", "痰少粘白", "痰中挟血", "聲音嘶啞", "口乾咽燥", "午後潮熱", "顴紅", "手足心熱", "夜寐盜汗", "日漸消瘦", "神疲", "舌質紅少苔", "脈細數"] }
-//   ]},
-//   { "disease": "肺痿 (Lung Atrophy)", "syndromes": [
-//       { "name": "虛熱 (Deficiency Heat)", "symptoms": ["咳吐濁唾涎沫", "質較粘稠", "咳痰帶血", "咳聲不揚", "音嗄", "氣急喘促", "口渴咽燥", "午後潮熱", "形體消瘦", "皮毛乾枯", "舌紅而乾", "脈虛數"] },
-//       { "name": "虛寒 (Deficiency Cold)", "symptoms": ["咯吐涎沫", "質清稀量多", "不渴", "短氣不足以息", "頭眩", "神疲乏力", "食少", "形寒", "小便數", "遺尿", "舌質淡", "脈虛弱"] }
-//   ]}
-// ];
+
 
 
 
@@ -171,7 +220,7 @@ const internalMed=[
     ]
   },
   {
-    "disease": "哮證 ",
+    "disease": "哮病 ",
     "syndromes": [
       {
         "name": "寒哮 ",
@@ -196,7 +245,7 @@ const internalMed=[
     ]
   },
   {
-    "disease": "喘證 ",
+    "disease": "喘病 ",
     "syndromes": [
       {
         "name": "風寒襲肺 ",
@@ -285,39 +334,51 @@ const internalMed=[
       {
         "name": "痰飲-飲留胃腸 ",
         "symptoms": ["心下堅滿或痛", "自利利後反快", "水走腸間瀝瀝有聲", "腹滿", "便祕", "口舌乾燥", "舌苔膩色白或黃", "脈沉弦或伏"]
-      },
+      },]
+    },
       {
-        "name": "懸飲-邪犯胸肺 ",
+    "disease": "懸飲 ",
+    "syndromes": [
+      {
+        "name": "邪犯胸肺 ",
         "symptoms": ["寒熱往來", "身熱起伏", "汗少", "發熱不惡寒", "咳嗽少痰", "氣急", "胸脅刺痛", "呼吸轉側疼痛加重", "心下痞硬", "乾嘔", "口苦咽乾", "舌苔薄白或黃", "脈弦數"]
       },
       {
-        "name": "懸飲-飲停胸脅 ",
+        "name": "飲停胸脅 ",
         "symptoms": ["咳唾引痛", "呼吸困難加重", "咳逆氣喘息促不能平臥", "病側肋間脹滿", "偏側胸廓隆起", "舌苔薄白膩", "脈沉弦或弦滑"]
       },
       {
-        "name": "懸飲-絡氣不和 ",
+        "name": "絡氣不和 ",
         "symptoms": ["胸脅疼痛", "胸悶不舒", "胸痛如灼", "或感刺痛", "呼吸不暢", "或有悶咳", "舌苔薄", "舌質黯", "脈弦"]
       },
       {
-        "name": "懸飲-陰虛內熱 ",
+        "name": "陰虛內熱 ",
         "symptoms": ["咳嗆時作", "略吐少量粘痰", "口乾咽燥", "午後潮熱", "顴紅", "心煩", "手足心熱", "盜汗", "形體消瘦", "舌質偏紅", "少苔", "脈小數"]
-      },
+      },]
+    },
+       {
+    "disease": "溢飲 ",
+    "syndromes": [
       {
         "name": "溢飲 ",
         "symptoms": ["身體疼痛而沉重", "甚則肢體浮腫", "惡寒", "無汗", "喘咳", "痰多白沫", "胸悶", "乾嘔", "口不渴", "舌苔白", "脈弦緊"]
-      },
+      },]
+    },
+  {
+    "disease": "支飲 ",
+    "syndromes": [
       {
-        "name": "支飲-寒飲伏肺 ",
+        "name": "寒飲伏肺 ",
         "symptoms": ["咳逆喘滿不得臥", "痰吐白沫量多", "天冷受寒加重", "面浮跗腫", "背痛", "腰疼", "目泣自出", "身體振振瞤動", "舌苔白滑或白膩", "脈弦緊"]
       },
       {
-        "name": "支飲-脾腎陽虛 ",
+        "name": "脾腎陽虛 ",
         "symptoms": ["喘促動則為甚", "氣短", "咳而氣怯", "痰多", "食少", "胸悶", "怯寒肢冷", "神疲", "小腹拘急不仁", "臍下悸動", "小便不利", "足跗浮腫", "吐涎沫", "頭目昏眩", "舌苔白潤或灰膩", "舌質胖大", "脈沉細兼滑"]
       }
     ]
   },
   {
-    "disease": "自汗、盜汗 ",
+    "disease": "汗病 ",
     "syndromes": [
       {
         "name": "肺衛不固 ",
@@ -339,94 +400,123 @@ const internalMed=[
   },
 
   {
-    "disease": "血證 ",
+    "disease": "鼻衄 ",
     "syndromes": [
       {
-        "name": "鼻衄-熱邪犯肺 ",
+        "name": "熱邪犯肺 ",
         "symptoms": ["鼻燥衄血", "口乾咽燥", "或兼有身熱", "咳嗽痰少等症", "舌質紅", "苔薄", "脈數"]
       },
       {
-        "name": "鼻衄-胃熱熾盛 ",
+        "name": "胃熱熾盛 ",
         "symptoms": ["鼻衄", "或兼齒衄", "血色鮮紅", "口渴欲飲", "鼻幹", "口乾臭穢", "煩躁", "便祕", "舌紅", "苔黃", "脈數"]
       },
       {
-        "name": "鼻衄-肝火上炎 ",
+        "name": "肝火上炎 ",
         "symptoms": ["鼻衄", "頭痛", "目眩", "耳鳴", "煩躁易怒", "兩目紅赤", "口苦", "舌紅", "脈弦數"]
       },
       {
-        "name": "鼻衄-氣血虧虛 ",
+        "name": "氣血虧虛 ",
         "symptoms": ["鼻衄", "或兼齒衄", "肌衄", "神疲乏力", "面色晄白", "頭暈", "耳鳴", "心悸", "夜寐不寧", "舌質淡", "脈細無力"]
-      },
+      },]
+    },
+
+    {
+    "disease": "齒衄 ",
+    "syndromes": [ 
       {
-        "name": "齒衄-胃火熾盛 ",
+        "name": "胃火熾盛 ",
         "symptoms": ["齒衄血色鮮紅", "齒齦紅腫疼痛", "頭痛", "口臭", "便祕", "舌紅", "苔黃", "脈洪數"]
       },
       {
-        "name": "齒衄-陰虛火旺 ",
+        "name": "陰虛火旺 ",
         "symptoms": ["齒衄", "血色淡紅", "常因受熱及煩勞而誘發", "齒搖不堅", "舌紅苔少", "脈細數"]
-      },
+      },]},
+
       {
-        "name": "咳血-燥熱傷肺 ",
+    "disease": "咳血 ",
+    "syndromes": [ 
+      {
+        "name": "燥熱傷肺 ",
         "symptoms": ["喉癢咳嗽", "痰中帶血", "口乾鼻燥", "或有身熱", "舌紅", "少津", "苔薄黃", "脈數"]
       },
       {
-        "name": "咳血-肝火犯肺 ",
+        "name": "肝火犯肺 ",
         "symptoms": ["咳嗽陣作", "痰中帶血或純血鮮紅", "胸脅脹痛", "煩躁易怒", "口苦", "舌質紅", "苔薄黃", "脈弦數"]
       },
       {
-        "name": "咳血-陰虛肺熱 ",
+        "name": "陰虛肺熱 ",
         "symptoms": ["咳嗽痰少", "痰中帶血或反覆咳血", "血色鮮紅", "口乾咽燥", "顴紅", "潮熱盜汗", "舌質紅", "脈細數"]
-      },
+      },]
+    },
+
+
+     {
+    "disease": "吐血 ",
+    "syndromes": [ 
       {
-        "name": "吐血-胃熱壅盛 ",
+        "name": "胃熱壅盛 ",
         "symptoms": ["脘腹脹悶", "甚則作痛", "吐血色紅或紫黯", "常夾有食物殘渣", "口臭", "便祕或大便色黑", "舌紅", "苔黃膩", "脈滑數"]
       },
       {
-        "name": "吐血-肝火犯胃 ",
+        "name": "肝火犯胃 ",
         "symptoms": ["吐血色紅或紫黯", "口苦脅痛", "心煩易怒", "寐少夢多", "舌質紅絳", "脈弦數"]
       },
       {
-        "name": "吐血-氣虛血溢 ",
+        "name": "氣虛血溢 ",
         "symptoms": ["吐血纏綿不止", "時輕時重", "血色暗淡", "神疲乏力", "心悸氣短", "面色蒼白", "舌質淡", "脈細弱"]
-      },
+      },]
+    },
+    {
+    "disease": "便血 ",
+    "syndromes": [ 
       {
-        "name": "便血-腸道濕熱 ",
+        "name": "腸道濕熱 ",
         "symptoms": ["便血鮮紅", "大便不暢或稀溏", "或有腹痛", "口苦", "苔黃膩", "脈濡數"]
       },
       {
-        "name": "便血-脾胃虛寒 ",
+        "name": "脾胃虛寒 ",
         "symptoms": ["便血紫黯", "甚則黑色", "腹部隱痛", "喜熱飲", "面色不華", "神倦懶言", "便溏", "舌質淡", "脈細"]
-      },
+      },]
+    },
+
+   {
+    "disease": "尿血 ",
+    "syndromes": [ 
       {
-        "name": "尿血-下焦熱盛 ",
+        "name": "下焦熱盛 ",
         "symptoms": ["小便黃赤灼熱", "尿血鮮紅", "心煩口渴", "面赤口瘡", "夜寐不安", "舌紅", "脈數"]
       },
       {
-        "name": "尿血-腎虛火旺 ",
+        "name": "腎虛火旺 ",
         "symptoms": ["小便短赤帶血", "頭暈耳鳴", "神疲", "顴紅潮熱", "腰膝酸軟", "舌質紅", "脈細數"]
       },
       {
-        "name": "尿血-脾不統血 ",
+        "name": "脾不統血 ",
         "symptoms": ["久病尿血", "面色不華", "體倦乏力", "氣短聲低", "或兼齒衄", "肌衄", "舌質淡", "脈細弱"]
       },
       {
-        "name": "尿血-腎氣不固 ",
+        "name": "腎氣不固 ",
         "symptoms": ["久病尿血", "色淡紅", "頭暈耳鳴", "精神困憊", "腰脊痠痛", "舌質淡", "脈沉弱"]
-      },
+      },]
+    },
+    {
+    "disease": "紫斑 ",
+    "syndromes": [ 
       {
-        "name": "紫斑-血熱妄行 ",
+        "name": "血熱妄行 ",
         "symptoms": ["皮膚出現青紫斑點或斑塊", "或伴有鼻衄", "齒衄", "便血", "尿血", "或有發熱", "口渴", "便祕", "舌紅", "苔黃", "脈弦數"]
       },
       {
-        "name": "紫斑-陰虛火旺 ",
+        "name": "陰虛火旺 ",
         "symptoms": ["皮膚青紫斑點或斑塊時發時止", "常伴鼻衄", "齒衄或月經過多", "顴紅", "心煩", "口渴", "手足心熱", "或有潮熱", "盜汗", "舌質紅", "苔少", "脈細數"]
       },
       {
-        "name": "紫斑-氣不攝血 ",
+        "name": "氣不攝血 ",
         "symptoms": ["久病不愈", "反覆發生肌衄", "神疲乏力", "頭暈目眩", "面色蒼白或萎黃", "食慾不振", "舌質淡", "脈細弱"]
       }
     ]
   },
+
   {
     "disease": "心悸 ",
     "syndromes": [
@@ -665,27 +755,27 @@ const internalMed=[
     "disease": "嘔吐 ",
     "syndromes": [
       {
-        "name": "實證-外邪犯胃 ",
+        "name": "實外邪犯胃 ",
         "symptoms": ["突然嘔吐", "可伴發熱惡寒", "頭身疼痛", "胸脘滿悶", "苔白膩", "脈濡緩"]
       },
       {
-        "name": "實證-飲食停滯 ",
+        "name": "飲食停滯 ",
         "symptoms": ["嘔吐酸腐", "脘腹脹滿", "噯氣厭食", "得食愈甚吐後反快", "大便穢臭或溏薄或祕結", "苔厚膩", "脈滑實"]
       },
       {
-        "name": "實證-痰飲內阻 ",
+        "name": "痰飲內阻 ",
         "symptoms": ["嘔吐多為清水痰涎", "脘悶不食", "頭眩心悸", "苔白膩", "脈滑"]
       },
       {
-        "name": "實證-肝氣犯胃 ",
+        "name": "肝氣犯胃 ",
         "symptoms": ["嘔吐吞酸", "噯氣頻繁", "胸脅悶痛", "舌邊紅", "苔薄膩", "脈弦"]
       },
       {
-        "name": "虛證-脾胃虛寒 ",
+        "name": "脾胃虛寒 ",
         "symptoms": ["飲食稍有不慎", "即易嘔吐", "時作時止", "面色晄白", "倦怠乏力", "口乾而不欲飲", "四肢不溫", "大便溏薄", "舌質淡", "脈濡弱"]
       },
       {
-        "name": "虛證-胃陰不足 ",
+        "name": "胃陰不足 ",
         "symptoms": ["嘔吐反復發作", "時作幹嘔", "口燥咽乾", "似飢而不欲食", "舌紅津少", "脈多細數"]
       }
     ]
@@ -1179,39 +1269,7 @@ const internalMed=[
     ]
   },
 
-  {
-    "disease": "水腫 ",
-    "syndromes": [
-      {
-        "name": "風水氾濫-風熱 ",
-        "symptoms": ["眼瞼浮腫", "繼則四肢及全身皆腫", "來勢迅速", "多有惡寒", "發熱", "肢節酸楚", "小便不利", "咽喉紅腫疼痛", "舌質紅", "脈浮滑數"]
-      },
-      {
-        "name": "風水氾濫-風寒 ",
-        "symptoms": ["眼瞼浮腫", "繼則四肢及全身皆腫", "來勢迅速", "多有惡寒", "惡寒", "咳喘", "舌苔薄白", "脈浮滑或緊"]
-      },
-      {
-        "name": "溼毒浸淫 ",
-        "symptoms": ["眼瞼浮腫", "延及全身", "小便不利", "身發瘡痍", "甚者潰爛", "惡風發熱", "舌質紅", "苔薄黃", "脈浮數或滑數"]
-      },
-      {
-        "name": "水溼浸漬 ",
-        "symptoms": ["全身水腫", "按之泛指", "小便短少", "身體困重", "胸悶", "納呆", "泛惡", "苔白膩", "脈沉緩", "起病緩慢", "病程較長"]
-      },
-      {
-        "name": "溼熱壅盛 ",
-        "symptoms": ["遍體浮腫", "皮膚繃急光亮", "胸脘痞悶", "煩熱口渴", "小便短赤", "或大便乾結", "苔黃膩", "脈沉數或滑數"]
-      },
-      {
-        "name": "脾陽虛衰 ",
-        "symptoms": ["身腫", "腰以下爲甚", "按之凹陷不易恢復", "脘腹脹悶", "納減便溏", "面色萎黃", "神倦肢冷", "小便短少", "舌質淡", "苔白膩或白滑", "脈沉緩或沉弱"]
-      },
-      {
-        "name": "腎氣衰微 ",
-        "symptoms": ["面浮身腫", "腰以下尤甚", "按之凹陷不起", "心悸", "氣促", "腰部冷痛酸重", "尿量減少或增多", "四肢厥冷", "怯寒神疲", "面色灰滯或晄白", "舌質淡胖", "苔白", "脈沉細或沉遲無力"]
-      }
-    ]
-  },
+
   {
     "disease": "淋證 ",
     "syndromes": [
@@ -1372,7 +1430,7 @@ const internalMed=[
   },
 
   {
-    "disease": "耳鳴、耳聾 ",
+    "disease": "耳鳴耳聾 ",
     "syndromes": [
       {
         "name": "肝膽火盛 ",
@@ -1519,7 +1577,307 @@ const internalMed=[
 ];
 
 
+const tcmData = [
+  // Page 1: Respiratory & Common Cold
+  { disease: "感冒", syndrome: "風寒", formula: "荊防敗毒散" },
+  { disease: "感冒", syndrome: "風熱", formula: "銀翹散或蔥豉桔梗湯加減" },
+  { disease: "感冒", syndrome: "暑濕", formula: "新加香薷飲加減" },
+  { disease: "感冒", syndrome: "氣虛", formula: "參蘇飲加減" },
+  { disease: "感冒", syndrome: "陰虛", formula: "加減葳蕤湯加減" },
+  { disease: "咳嗽", syndrome: "風寒襲肺證", formula: "三拗湯, 止嗽散加減" },
+  { disease: "咳嗽", syndrome: "風熱犯肺證", formula: "桑菊飲加減" },
+  { disease: "咳嗽", syndrome: "風燥傷肺證 (溫燥)", formula: "桑杏湯加減" },
+  { disease: "咳嗽", syndrome: "風燥傷肺證 (涼燥)", formula: "杏蘇散加減" },
+  { disease: "咳嗽", syndrome: "痰濕蘊肺證", formula: "二陳湯合三子養親湯加減" },
+  { disease: "咳嗽", syndrome: "痰熱鬱肺證", formula: "清金化痰湯加減" },
+  { disease: "咳嗽", syndrome: "肝火犯肺證", formula: "黛蛤散合瀉白散加減" },
+  { disease: "咳嗽", syndrome: "肺陰虧耗證", formula: "沙參麥冬湯加減" },
+  { disease: "肺痿", syndrome: "虛熱證", formula: "麥門冬湯合清燥救肺湯加減" },
+  { disease: "肺痿", syndrome: "虛寒證", formula: "甘草乾薑湯或生薑甘草湯加減" },
+  { disease: "肺癰", syndrome: "初期 (表證期)", formula: "銀翹散加減" },
+  { disease: "肺癰", syndrome: "成癰期", formula: "千金葦莖湯合如金解毒散加減" },
+  { disease: "肺癰", syndrome: "潰膿期", formula: "加味桔梗湯加減" },
+  { disease: "肺癰", syndrome: "恢復期", formula: "沙參清肺湯或桔梗杏仁煎加減" },
+  { disease: "哮病", syndrome: "寒哮 (發作期)", formula: "射干麻黃湯, 小青龍湯加減" },
+  { disease: "哮病", syndrome: "熱哮 (發作期)", formula: "定喘湯, 越婢加半夏湯加減" },
+  { disease: "哮病", syndrome: "肺虛 (緩解期)", formula: "玉屏風散" },
+  { disease: "哮病", syndrome: "脾虛 (緩解期)", formula: "六君子湯加減" },
+  { disease: "哮病", syndrome: "肺腎兩虛證 (緩解期)", formula: "金匱腎氣丸或七味都氣丸" },
+  { disease: "喘病", syndrome: "風寒壅肺 (實喘)", formula: "麻黃湯加減" },
+  { disease: "喘病", syndrome: "表寒裡熱 (實喘)", formula: "麻杏石甘湯加減" },
+  { disease: "喘病", syndrome: "痰熱鬱肺證 (實喘)", formula: "桑白皮湯加減" },
+  { disease: "喘病", syndrome: "痰濁阻肺證 (實喘)", formula: "二陳湯合三子養親湯加減" },
+  { disease: "喘病", syndrome: "肺氣鬱痹證 (實喘)", formula: "五磨飲子加減" },
+  { disease: "喘病", syndrome: "肺氣虛耗證 (虛喘)", formula: "生脈散合補肺湯加減" },
+  { disease: "喘病", syndrome: "腎虛不納證 (虛喘)", formula: "金匱腎氣丸合參蛤散加減" },
 
+  // Page 2: Lung Distention & Phthisis & Fluids
+  { disease: "肺脹", syndrome: "痰濁壅肺證", formula: "蘇子降氣湯, 三子養親湯, 六君子湯加減" },
+  { disease: "肺脹", syndrome: "痰熱鬱肺證", formula: "越婢加半夏湯或桑白皮湯加減" },
+  { disease: "肺脹", syndrome: "痰蒙神竅證", formula: "滌痰湯加減, 安宮牛黃丸或至寶丹" },
+  { disease: "肺脹", syndrome: "肺腎氣虛證", formula: "平喘固本湯, 補肺湯加減" },
+  { disease: "肺脹", syndrome: "陽虛水泛證", formula: "真武湯合五苓散加減" },
+  { disease: "肺癆", syndrome: "肺陰虧虛", formula: "月華丸加減" },
+  { disease: "肺癆", syndrome: "陰虛火旺", formula: "百合固金湯合秦艽鱉甲散加減" },
+  { disease: "肺癆", syndrome: "氣陰耗傷", formula: "保真湯" },
+  { disease: "肺癆", syndrome: "陰陽兩虛", formula: "補天大造丸加減" },
+  { disease: "痰飲", syndrome: "脾陽虛弱證", formula: "苓桂朮甘湯合小半夏加茯苓湯加減" },
+  { disease: "痰飲", syndrome: "飲留胃腸", formula: "甘遂半夏湯或己椒苈黃丸" },
+  { disease: "懸飲", syndrome: "邪犯胸肺證", formula: "柴枳半夏湯加減" },
+  { disease: "懸飲", syndrome: "飲停胸脅證", formula: "十棗湯或控涎丹" },
+  { disease: "懸飲", syndrome: "絡氣不和證", formula: "香附旋覆花湯加減" },
+  { disease: "懸飲", syndrome: "陰虛內熱證", formula: "沙參麥冬湯, 瀉白散加減" },
+  { disease: "溢飲", syndrome: "表寒裡飲證", formula: "小青龍湯加減" },
+  { disease: "支飲", syndrome: "寒飲伏肺證", formula: "小青龍湯加減" },
+  { disease: "支飲", syndrome: "脾腎陽虛證", formula: "金匱腎氣丸合苓桂朮甘湯加減" },
+  { disease: "汗病", syndrome: "肺衛不固證", formula: "玉屏風散加減" },
+  { disease: "汗病", syndrome: "營衛不和", formula: "桂枝湯加味" },
+  { disease: "汗病", syndrome: "邪熱鬱蒸證", formula: "龍膽瀉肝湯加減" },
+  { disease: "汗病", syndrome: "陰虛火旺證", formula: "當歸六黃湯加減" },
+  { disease: "鼻衄", syndrome: "熱邪犯肺證", formula: "桑菊飲加減" },
+  { disease: "鼻衄", syndrome: "胃熱熾盛證", formula: "玉女煎加減" },
+  { disease: "鼻衄", syndrome: "肝火上炎證", formula: "龍膽瀉肝湯加減" },
+  { disease: "鼻衄", syndrome: "氣血虧虛證", formula: "歸脾湯加減" },
+  { disease: "齒衄", syndrome: "胃火熾盛證", formula: "加味清胃散合瀉心湯加減" },
+  { disease: "齒衄", syndrome: "陰虛火旺證", formula: "滋水清肝飲合茜根散加減" },
+  { disease: "咳血", syndrome: "燥熱傷肺證", formula: "桑杏湯加減" },
+  { disease: "咳血", syndrome: "肝火犯肺證", formula: "瀉白散合黛蛤散加減" },
+  { disease: "咳血", syndrome: "陰虛肺熱證", formula: "百合固金湯加減" },
+  { disease: "吐血", syndrome: "胃熱壅盛證", formula: "瀉心湯合十灰散加減" },
+
+  // Page 3: Blood Stasis & Heart Health
+  { disease: "吐血", syndrome: "肝火犯胃證", formula: "龍膽瀉肝湯加減" },
+  { disease: "吐血", syndrome: "氣虛血溢證", formula: "歸脾湯加減" },
+  { disease: "便血", syndrome: "腸道濕熱證", formula: "地榆散合槐角丸加減" },
+  { disease: "便血", syndrome: "脾胃虛寒證", formula: "黃土湯加減" },
+  { disease: "尿血", syndrome: "下焦濕熱證", formula: "小薊飲子加減" },
+  { disease: "尿血", syndrome: "腎虛火旺證", formula: "知柏地黃丸加減" },
+  { disease: "尿血", syndrome: "脾不統血證", formula: "歸脾湯加減" },
+  { disease: "尿血", syndrome: "腎氣不固證", formula: "無比山藥丸加減" },
+  { disease: "紫斑", syndrome: "血熱妄行證", formula: "犀角地黃湯合十灰散加減" },
+  { disease: "紫斑", syndrome: "氣不攝血證", formula: "歸脾湯加減" },
+  { disease: "紫斑", syndrome: "陰虛火旺證", formula: "茜根散加減" },
+  { disease: "心悸", syndrome: "心虛膽怯證", formula: "安神定志丸加減" },
+  { disease: "心悸", syndrome: "心血不足證", formula: "歸脾湯加減" },
+  { disease: "心悸", syndrome: "陰虛火旺證", formula: "天王補心丹, 朱砂安神丸加減" },
+  { disease: "心悸", syndrome: "心陽不振證", formula: "桂枝甘草龍骨牡蠣湯加減" },
+  { disease: "心悸", syndrome: "水飲凌心證", formula: "苓桂朮甘湯加減" },
+  { disease: "心悸", syndrome: "瘀阻心脈證", formula: "桃仁紅花煎加減" },
+  { disease: "胸痹", syndrome: "心血瘀阻證", formula: "血府逐瘀湯加減" },
+  { disease: "胸痹", syndrome: "痰濁閉阻證", formula: "栝蔞薤白半夏湯加減" },
+  { disease: "胸痹", syndrome: "陰寒凝滯證", formula: "枳實薤白白酒湯加減" },
+  { disease: "胸痹", syndrome: "氣陰兩虛證", formula: "生脈散合人參養榮湯加減" },
+  { disease: "胸痹", syndrome: "心腎陰虛證", formula: "左歸飲加減" },
+  { disease: "胸痹", syndrome: "陽氣虛衰證", formula: "右歸飲合參附湯加減" },
+  { disease: "不寐", syndrome: "痰熱擾心證", formula: "溫膽湯加減" },
+  { disease: "不寐", syndrome: "肝火擾心證", formula: "龍膽瀉肝湯加減" },
+  { disease: "不寐", syndrome: "心膽氣虛證", formula: "安神定志丸合酸棗仁湯加減" },
+  { disease: "不寐", syndrome: "心脾兩虛證", formula: "歸脾湯加減" },
+  { disease: "不寐", syndrome: "陰虛火旺 (心腎不交)", formula: "黃連阿膠湯, 朱砂安神丸加減" },
+  { disease: "厥證", syndrome: "氣厥 (實證)", formula: "五磨飲子加減" },
+  { disease: "厥證", syndrome: "氣厥 (虛證)", formula: "四味回陽飲加減" },
+  { disease: "厥證", syndrome: "血厥 (實證)", formula: "通瘀煎加減" },
+  { disease: "厥證", syndrome: "血厥 (虛證)", formula: "獨參湯, 人參養榮湯" },
+  { disease: "厥證", syndrome: "痰厥", formula: "導痰湯加減" },
+  { disease: "厥證", syndrome: "食厥", formula: "鹽湯探吐, 神術散, 保和丸" },
+
+  // Page 4: Depression & Gastric Issues
+  { disease: "鬱證", syndrome: "肝氣鬱結證", formula: "柴胡疏肝散加減" },
+  { disease: "鬱證", syndrome: "氣鬱化火證", formula: "丹梔逍遙散加減" },
+  { disease: "鬱證", syndrome: "氣滯痰鬱證", formula: "半夏厚朴湯加減" },
+  { disease: "鬱證", syndrome: "憂鬱傷神證", formula: "甘麥大棗湯加減" },
+  { disease: "鬱證", syndrome: "心脾兩虛證", formula: "歸脾湯加減" },
+  { disease: "鬱證", syndrome: "陰虛火旺證", formula: "滋水清肝飲加減" },
+  { disease: "癲證", syndrome: "痰氣鬱結", formula: "順氣導痰湯加減" },
+  { disease: "癲證", syndrome: "心脾兩虛", formula: "養心湯加減" },
+  { disease: "狂證", syndrome: "痰火上擾", formula: "生鐵落飲加減" },
+  { disease: "狂證", syndrome: "火盛傷陰", formula: "二陰煎" },
+  { disease: "癇病", syndrome: "風痰閉阻證", formula: "定癇丸加減" },
+  { disease: "癇病", syndrome: "痰火內盛證", formula: "龍膽瀉肝湯合滌痰湯加減" },
+  { disease: "癇病", syndrome: "心腎虧虛證", formula: "大補元煎" },
+  { disease: "胃痛", syndrome: "寒邪客胃證", formula: "良附丸加減" },
+  { disease: "胃痛", syndrome: "飲食停滯證", formula: "保和丸加減" },
+  { disease: "胃痛", syndrome: "肝氣犯胃證", formula: "柴胡疏肝散加減" },
+  { disease: "胃痛", syndrome: "肝胃鬱熱證", formula: "化肝煎加減" },
+  { disease: "胃痛", syndrome: "瘀血停滯證", formula: "失笑散合丹參飲加減" },
+  { disease: "胃痛", syndrome: "胃陰虧虛證", formula: "一貫煎合芍藥甘草湯加減" },
+  { disease: "胃痛", syndrome: "脾胃虛寒證", formula: "黃芪建中湯加減" },
+  { disease: "噎嗝", syndrome: "痰氣交阻證", formula: "啟膈散加減" },
+  { disease: "噎嗝", syndrome: "津虧熱結證", formula: "五汁安中湯加減" },
+  { disease: "噎嗝", syndrome: "瘀血內結證", formula: "通幽湯加減" },
+  { disease: "噎嗝", syndrome: "氣虛陽微證", formula: "補氣運脾湯, 右歸丸加減" },
+  { disease: "嘔吐", syndrome: "外邪犯胃證", formula: "藿香正氣散加減" },
+  { disease: "嘔吐", syndrome: "食滯內停證", formula: "保和丸加減" },
+  { disease: "嘔吐", syndrome: "肝氣犯胃證", formula: "半夏厚朴湯, 左金丸" },
+  { disease: "嘔吐", syndrome: "痰飲內阻證", formula: "小半夏湯合苓桂朮甘湯加減" },
+  { disease: "嘔吐", syndrome: "胃陰不足證", formula: "麥門冬湯加減" },
+  { disease: "嘔吐", syndrome: "脾胃虛寒證", formula: "理中湯加減" },
+  { disease: "呃逆", syndrome: "胃中寒冷證", formula: "丁香散加減" },
+  { disease: "呃逆", syndrome: "胃火上逆證", formula: "竹葉石膏湯加減" },
+  { disease: "呃逆", syndrome: "氣機鬱滯證", formula: "五磨飲子加減" },
+  { disease: "呃逆", syndrome: "胃陰不足證", formula: "益胃湯, 橘皮竹茹湯加減" },
+  { disease: "呃逆", syndrome: "脾胃陽虛證", formula: "理中丸加減" },
+
+  // Page 5: Diarrhea, Dysentery, & Intestinal Issues
+  { disease: "泄瀉", syndrome: "寒濕證", formula: "藿香正氣散加減" },
+  { disease: "泄瀉", syndrome: "濕熱證", formula: "葛根芩連湯加減" },
+  { disease: "泄瀉", syndrome: "食滯腸胃證", formula: "保和丸加減" },
+  { disease: "泄瀉", syndrome: "肝氣乘脾證", formula: "痛瀉要方加減" },
+  { disease: "泄瀉", syndrome: "腎陽虛衰證", formula: "四神丸加減" },
+  { disease: "泄瀉", syndrome: "脾胃虛弱證", formula: "參苓白朮散加減" },
+  { disease: "痢疾", syndrome: "濕熱痢", formula: "芍藥湯加減" },
+  { disease: "痢疾", syndrome: "疫毒痢", formula: "白頭翁湯加減" },
+  { disease: "痢疾", syndrome: "寒濕痢", formula: "不換金正氣散加減" },
+  { disease: "痢疾", syndrome: "陰虛痢", formula: "駐車丸加減" },
+  { disease: "痢疾", syndrome: "虛寒痢", formula: "桃花湯, 真人養臟湯" },
+  { disease: "痢疾", syndrome: "休息痢", formula: "連理湯加減" },
+  { disease: "霍亂", syndrome: "寒霍亂 (輕證)", formula: "藿香正氣散合純陽正氣丸" },
+  { disease: "霍亂", syndrome: "寒霍亂 (重證)", formula: "附子理中湯加減" },
+  { disease: "霍亂", syndrome: "熱霍亂", formula: "蠶矢湯或燃照湯加減" },
+  { disease: "霍亂", syndrome: "乾霍亂", formula: "玉樞丹加減" },
+  { disease: "腹痛", syndrome: "寒邪內阻證", formula: "良附丸合正氣天香散加減" },
+  { disease: "腹痛", syndrome: "濕熱壅滯證", formula: "大承氣湯加減" },
+  { disease: "腹痛", syndrome: "飲食積滯證", formula: "保濟丸, 枳實導滯丸加減" },
+  { disease: "腹痛", syndrome: "氣滯血瘀證", formula: "柴胡疏肝散, 少腹逐瘀湯加減" },
+  { disease: "腹痛", syndrome: "中虛臟寒證", formula: "小建中湯加減" },
+  { disease: "便秘", syndrome: "熱秘", formula: "麻子仁丸加減" },
+  { disease: "便秘", syndrome: "氣秘", formula: "六磨湯加減" },
+  { disease: "便秘", syndrome: "氣虛秘", formula: "黃芪湯加減" },
+  { disease: "便秘", syndrome: "血虛秘", formula: "潤腸丸加減" },
+  { disease: "便秘", syndrome: "冷秘", formula: "濟川煎加減" },
+  { disease: "蟲證", syndrome: "蛔蟲證", formula: "烏梅丸, 化蟲丸加減" },
+  { disease: "蟲證", syndrome: "絛蟲證", formula: "南瓜子、檳榔合方" },
+  { disease: "蟲證", syndrome: "鉤蟲證 (脾虛濕滯)", formula: "黃病絳礬丸加減" },
+  { disease: "蟲證", syndrome: "鉤蟲證 (氣血兩虛)", formula: "八珍湯" },
+  { disease: "蟲證", syndrome: "蟯蟲證", formula: "追蟲丸加減" },
+  { disease: "蟲證", syndrome: "薑片蟲證", formula: "檳榔煎劑" },
+  { disease: "脅痛", syndrome: "肝氣鬱結證", formula: "柴胡疏肝散加減" },
+  { disease: "脅痛", syndrome: "瘀血停著證", formula: "旋覆花湯加減" },
+  { disease: "脅痛", syndrome: "肝膽濕熱證", formula: "龍膽瀉肝湯加減" },
+  { disease: "脅痛", syndrome: "肝陰不足證", formula: "一貫煎加減" },
+
+  // Page 6: Jaundice, Masses, & Neurology
+  { disease: "黃疸", syndrome: "陽黃 (熱重於濕)", formula: "茵陳蒿湯加減" },
+  { disease: "黃疸", syndrome: "陽黃 (濕重於熱)", formula: "茵陳五苓散合甘露消毒丹加減" },
+  { disease: "黃疸", syndrome: "疫毒熾盛證 (急黃)", formula: "犀角散加味" },
+  { disease: "黃疸", syndrome: "陰黃 (寒濕阻遏)", formula: "茵陳術附湯加減" },
+  { disease: "黃疸", syndrome: "肝脾不調 (消退後)", formula: "逍遙散或香砂六君子湯加減" },
+  { disease: "積聚 (聚證)", syndrome: "肝氣鬱結", formula: "逍遙散加減" },
+  { disease: "積聚 (聚證)", syndrome: "食滯痰阻", formula: "六磨湯加減" },
+  { disease: "積聚 (積證)", syndrome: "氣滯血阻", formula: "金鈴子散合失笑散加減" },
+  { disease: "積聚 (積證)", syndrome: "瘀血內結", formula: "膈下逐瘀湯, 蟞甲煎丸+六君子" },
+  { disease: "積聚 (積證)", syndrome: "正虛瘀結", formula: "化積丸, 八珍湯加減" },
+  { disease: "鼓脹", syndrome: "氣滯濕阻證", formula: "柴胡疏肝散合胃苓湯加減" },
+  { disease: "鼓脹", syndrome: "寒濕困脾證", formula: "實脾飲加減" },
+  { disease: "鼓脹", syndrome: "濕熱蘊結證", formula: "中滿分消丸合茵陳蒿湯, 舟車丸" },
+  { disease: "鼓脹", syndrome: "肝脾血瘀證", formula: "調營飲加減" },
+  { disease: "鼓脹", syndrome: "脾腎陽虛證", formula: "附子理中丸+五苓散, 濟生腎氣丸加減" },
+  { disease: "鼓脹", syndrome: "肝腎陰虛證", formula: "六味地黃丸合一貫煎加減" },
+  { disease: "頭痛", syndrome: "風寒證 (外感)", formula: "川芎茶調散加減" },
+  { disease: "頭痛", syndrome: "風熱證 (外感)", formula: "芎芷石膏湯加減" },
+  { disease: "頭痛", syndrome: "風濕證 (外感)", formula: "羌活勝濕湯加減" },
+  { disease: "頭痛", syndrome: "肝陽證 (內傷)", formula: "天麻鉤藤飲加減" },
+  { disease: "頭痛", syndrome: "腎虛證 (內傷)", formula: "大補元煎加減" },
+  { disease: "頭痛", syndrome: "血虛證 (內傷)", formula: "加味四物湯加減" },
+  { disease: "頭痛", syndrome: "痰濁證 (內傷)", formula: "半夏白朮天麻湯加減" },
+  { disease: "頭痛", syndrome: "瘀血證 (內傷)", formula: "通竅活血湯加減" },
+  { disease: "眩暈", syndrome: "肝陽上亢證", formula: "天麻鉤藤飲加減" },
+  { disease: "眩暈", syndrome: "氣血虧虛證", formula: "歸脾湯加減" },
+  { disease: "眩暈", syndrome: "腎精不足證", formula: "左歸丸加減" },
+  { disease: "眩暈", syndrome: "痰濕中阻證", formula: "半夏白朮天麻湯加減" },
+  { disease: "眩暈", syndrome: "瘀血阻竅證", formula: "通竅活血湯加減" },
+  { disease: "中風", syndrome: "中經絡 (脈絡空虛)", formula: "大秦艽丸" },
+  { disease: "中風", syndrome: "中經絡 (肝腎陰虛)", formula: "鎮肝熄風湯加減" },
+  { disease: "中風", syndrome: "中臟腑 (陽閉)", formula: "羚角鉤藤湯, 至寶丹, 安宮牛黃丸" },
+  { disease: "中風", syndrome: "中臟腑 (陰閉)", formula: "滌痰湯, 蘇合香丸" },
+  { disease: "中風", syndrome: "中臟腑 (脫證)", formula: "參附湯合生脈散加味" },
+  { disease: "中風", syndrome: "半身不遂", formula: "補陽還五湯加減" },
+  { disease: "中風", syndrome: "語言不利 / 口眼窩斜", formula: "解語丹加減" },
+
+  // Page 7: End-stage neurology, Goiter, & Urinary Issues
+  { disease: "中風", syndrome: "肝腎虧虛", formula: "地黃飲子加減" },
+  { disease: "中風", syndrome: "肝陽上亢", formula: "鎮肝熄風湯, 天麻鉤藤飲加減" },
+  { disease: "痙病", syndrome: "邪壅經絡", formula: "羌活勝濕湯加減" },
+  { disease: "痙病", syndrome: "熱甚發痙", formula: "增液承氣湯加減" },
+  { disease: "痙病", syndrome: "陰血虧虛", formula: "四物湯合大定風珠加減" },
+  { disease: "癭病", syndrome: "氣鬱痰阻證", formula: "四海舒鬱丸加減" },
+  { disease: "癭病", syndrome: "痰結血瘀證", formula: "海藻玉壺湯加減" },
+  { disease: "癭病", syndrome: "肝火旺盛證", formula: "梔子清肝湯合藻藥散加減" },
+  { disease: "癭病", syndrome: "心肝陰虛證", formula: "天王補心丹加減" },
+  { disease: "瘧疾", syndrome: "正瘧", formula: "柴胡截瘧飲加減" },
+  { disease: "瘧疾", syndrome: "溫瘧", formula: "白虎加桂枝湯加減" },
+  { disease: "瘧疾", syndrome: "寒瘧", formula: "柴胡桂枝乾薑湯合截瘧七寶飲加減" },
+  { disease: "瘧疾", syndrome: "熱瘴 (瘴瘧)", formula: "清瘴湯加減" },
+  { disease: "瘧疾", syndrome: "冷瘴 (瘴瘧)", formula: "加味不換金正氣散加減" },
+  { disease: "瘧疾", syndrome: "勞瘧", formula: "何人飲加減" },
+  { disease: "水腫", syndrome: "風水氾濫 (陽水)", formula: "越婢加朮湯加減" },
+  { disease: "水腫", syndrome: "濕毒浸淫 (陽水)", formula: "麻黃連翹赤小豆湯合五味消毒飲" },
+  { disease: "水腫", syndrome: "水濕浸漬 (陽水)", formula: "五皮飲合胃苓湯" },
+  { disease: "水腫", syndrome: "濕熱壅盛 (陽水)", formula: "疏鑿飲子加減" },
+  { disease: "水腫", syndrome: "脾陽虛衰 (陰水)", formula: "實脾飲加減" },
+  { disease: "水腫", syndrome: "腎陽衰微 (陰水)", formula: "濟生腎氣丸合真武湯加減" },
+  { disease: "淋證", syndrome: "熱淋", formula: "八正散加減" },
+  { disease: "淋證", syndrome: "石淋", formula: "石韋散加減" },
+  { disease: "淋證", syndrome: "氣淋 (實/虛)", formula: "沉香散 / 補中益氣湯, 八珍湯" },
+  { disease: "淋證", syndrome: "血淋 (實/虛)", formula: "小薊飲子 / 知柏地黃丸加減" },
+  { disease: "淋證", syndrome: "膏淋 (實/虛)", formula: "程氏萆薢分清飲 / 補中益氣湯+七味都氣丸" },
+  { disease: "淋證", syndrome: "勞淋", formula: "無比山藥丸加減" },
+  { disease: "癃閉", syndrome: "膀胱濕熱證", formula: "八正散加減" },
+  { disease: "癃閉", syndrome: "肺熱壅盛證", formula: "清肺飲加減" },
+  { disease: "癃閉", syndrome: "肝鬱氣滯證", formula: "沉香散加減" },
+  { disease: "癃閉", syndrome: "尿路阻塞證", formula: "代抵當丸加減" },
+  { disease: "癃閉", syndrome: "中氣不足證", formula: "補中益氣湯合春澤湯加減" },
+  { disease: "癃閉", syndrome: "腎陽衰憊證", formula: "濟生腎氣丸加減" },
+  { disease: "腰痛", syndrome: "寒濕腰痛", formula: "甘薑苓朮湯加減" },
+
+  // Page 8: Chronic conditions & Weakness
+  { disease: "腰痛", syndrome: "濕熱腰痛", formula: "四妙丸加減" },
+  { disease: "腰痛", syndrome: "瘀血腰痛", formula: "身痛逐瘀湯加減" },
+  { disease: "腰痛", syndrome: "腎陰虛 (腎虛)", formula: "左歸丸加減" },
+  { disease: "腰痛", syndrome: "腎陽虛 (腎虛)", formula: "右歸丸加減" },
+  { disease: "消渴", syndrome: "肺熱津傷 (上消)", formula: "消渴方, 二冬湯" },
+  { disease: "消渴", syndrome: "胃熱熾盛 (中消)", formula: "玉女煎加減" },
+  { disease: "消渴", syndrome: "氣陰虧虛 (中消)", formula: "七味白朮散加減" },
+  { disease: "消渴", syndrome: "腎陰虧虛 (下消)", formula: "六味地黃丸加減" },
+  { disease: "消渴", syndrome: "陰陽兩虛 (下消)", formula: "金匱腎氣丸加減" },
+  { disease: "遺精", syndrome: "君相火旺", formula: "黃連清心飲, 天王補心丹, 三才封髓丹" },
+  { disease: "遺精", syndrome: "濕熱下注", formula: "程氏萆薢分清飲加減" },
+  { disease: "遺精", syndrome: "勞傷心脾", formula: "妙香散加減" },
+  { disease: "遺精", syndrome: "腎虛滑脫", formula: "六味地黃, 左歸飲/丸, 金鎖固精丸" },
+  { disease: "耳鳴耳聾", syndrome: "肝膽火盛證", formula: "龍膽瀉肝湯加減" },
+  { disease: "耳鳴耳聾", syndrome: "痰火鬱結證", formula: "溫膽湯加減" },
+  { disease: "耳鳴耳聾", syndrome: "風熱上擾證", formula: "銀翹散加減" },
+  { disease: "耳鳴耳聾", syndrome: "腎精虧虛證", formula: "耳聾左慈丸加減" },
+  { disease: "耳鳴耳聾", syndrome: "脾胃虛弱證", formula: "益氣聰明湯加減" },
+  { disease: "痹病", syndrome: "行痹 (風偏勝)", formula: "防風湯加減" },
+  { disease: "痹病", syndrome: "痛痹 (寒偏勝)", formula: "烏頭湯加減" },
+  { disease: "痹病", syndrome: "著痹 (濕偏勝)", formula: "薏苡仁湯加減" },
+  { disease: "痹病", syndrome: "風濕熱痹", formula: "白虎加桂枝湯或宣痹湯加減" },
+  { disease: "痹病", syndrome: "肝腎兩虛證", formula: "獨活寄生湯加減" },
+  { disease: "痿病", syndrome: "肺熱津傷證", formula: "清燥救肺湯加減" },
+  { disease: "痿病", syndrome: "濕熱浸淫證", formula: "加味二妙散加減" },
+  { disease: "痿病", syndrome: "脾胃虛弱證", formula: "參苓白朮散, 補中益氣湯加減" },
+  { disease: "痿病", syndrome: "肝腎虧損證", formula: "虎潛丸加減" },
+  { disease: "內傷發熱", syndrome: "肝鬱發熱證", formula: "丹梔逍遙散加減" },
+  { disease: "內傷發熱", syndrome: "氣虛發熱證", formula: "補中益氣湯加減" },
+  { disease: "內傷發熱", syndrome: "血瘀發熱證", formula: "血府逐瘀湯加減" },
+  { disease: "內傷發熱", syndrome: "血虛發熱證", formula: "歸脾湯加減" },
+  { disease: "內傷發熱", syndrome: "陰虛發熱證", formula: "清骨散加減" },
+  { disease: "虛勞", syndrome: "肺氣虛", formula: "補肺湯加減" },
+  { disease: "虛勞", syndrome: "脾氣虛", formula: "加味四君子湯加減" },
+
+  // Page 9: Exhaustion (Blood/Yin/Yang)
+  { disease: "虛勞", syndrome: "心血虛", formula: "養心湯加減" },
+  { disease: "虛勞", syndrome: "肝血虛", formula: "四物湯加減" },
+  { disease: "虛勞", syndrome: "肝陰虛", formula: "補肝湯加減" },
+  { disease: "虛勞", syndrome: "心陰虛", formula: "天王補心丹加減" },
+  { disease: "虛勞", syndrome: "脾胃陰虛", formula: "益胃湯加減" },
+  { disease: "虛勞", syndrome: "肺陰虛", formula: "沙參麥冬湯加減" },
+  { disease: "虛勞", syndrome: "腎陰虛", formula: "左歸丸加減" },
+  { disease: "虛勞", syndrome: "心陽虛", formula: "拯陽理勞湯加減" },
+  { disease: "虛勞", syndrome: "脾陽虛", formula: "附子理中湯加減" },
+  { disease: "虛勞", syndrome: "腎陽虛", formula: "右歸丸加減" }
+];
 
 
 
@@ -1550,7 +1908,7 @@ function renderCards() {
             <div class="q-num">Flashcard #${i + 1}</div>
             <div class="symptoms">${item.symptoms}</div>
             <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
-            <div class="answer-box">
+            <div class="answer-box" onclick='showInfo("${item.disease}")'>
                 <div class="tag-label">DIAGNOSIS</div>
                 <div class="tag-result">${item.disease} — ${item.name}</div>
             </div>
@@ -1559,6 +1917,9 @@ function renderCards() {
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+
+
 function exportTxt(type) {
     let content = "";
     let fileName = "";
@@ -1609,6 +1970,35 @@ function exportTxt(type) {
 }
 
 renderCards();
+
+
+
+// Generate Unique Buttons
+
+
+function showInfo(name) {
+
+   const results = tcmData.filter(d => d.disease === name.trim());
+  const content = document.getElementById('modalContent');
+  
+  content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + 
+    results.map(item => `
+      <div class="syndrome-card">
+        <p style="margin:0 0 12px 0; font-weight:600;">${item.syndrome}  :  ${item.formula}</p>
+       
+      </div>
+    `).join('');
+    
+  document.getElementById('tcmModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('tcmModal').style.display = 'none';
+}
+
+function closeOnBackdrop(e) {
+  if (e.target.id === 'tcmModal') closeModal();
+}
 </script>
 </body>
 </html>
