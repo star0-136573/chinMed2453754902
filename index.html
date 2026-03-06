@@ -109,6 +109,7 @@ button.disease-trigger:hover {
         <h1 class="title">中醫內科辨證</h1>
 <div class="btn-group">
     <button class="btn btn-main" onclick="renderCards()">Shuffle Cards</button>
+    <button class="btn btn-main" onclick="renderCardsInOrder()">List Cards</button>
     <button class="btn" onclick="exportTxt('exam')">Download Exam Kit (TXT)</button>
     <button class="btn" onclick="exportTxt('notes')">Download Study Notes (TXT)</button>
 </div>
@@ -1969,7 +1970,28 @@ function exportTxt(type) {
 
 renderCards();
 
-
+function renderCardsInOrder(){
+     studyData = [];
+    internalMed.forEach(d => d.syndromes.forEach(s => studyData.push({ disease: d.disease, name: s.name, symptoms: s.symptoms.join('、') })));
+   
+  const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+    studyData.forEach((item, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="q-num">Flashcard #${i + 1} <span class="tag-result">${item.disease}<span></div>
+            <div class="symptoms">${item.symptoms}</div>
+            <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
+            <div class="answer-box" onclick='showInfo("${item.disease}")'>
+                <div class="tag-label">DIAGNOSIS</div>
+                <div class="tag-result">${item.disease} — ${item.name}</div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // Generate Unique Buttons
 
