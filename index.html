@@ -53,6 +53,7 @@ button.disease-trigger:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
+
 /* Minimalist Modal Overlay */
 .modal-overlay {
   position: fixed;
@@ -73,6 +74,8 @@ button.disease-trigger:hover {
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.08);
   position: relative;
+    max-height: 90vh; /* Limits height to 90% of the screen */
+  overflow-y: auto; /* Adds scrollbar if content exceeds max-height */
 }
 
 .close-btn {
@@ -94,6 +97,27 @@ button.disease-trigger:hover {
 
 .syndrome-card:last-child { border: none; }
 
+
+  /* Minimalist Chips */
+  .chip-container { display: flex; gap: 10px; margin-bottom: 40px; flex-wrap: wrap; }
+  
+  .chip {
+    padding: 8px 18px;
+    background: var(--chip-bg);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+
+  .chip input { display: none; }
+  .chip:has(input:checked) {
+    background: var(--accent);
+    color: white;
+  }
+
     </style>
 </head>
 <body>
@@ -112,9 +136,18 @@ button.disease-trigger:hover {
     <button class="btn btn-main" onclick="renderCardsInOrder()">List Cards</button>
     <button class="btn" onclick="exportTxt('exam')">Download Exam Kit (TXT)</button>
     <button class="btn" onclick="exportTxt('notes')">Download Study Notes (TXT)</button>
+    <button class="btn" onclick="document.getElementById('tcmSelectModal').style.display = 'flex';">select Modules</button>
 </div>
-
+<div id="tcmSelectModal" class="modal-overlay" onclick="closeOnBackdrop(event)">
+  <div class="modal-box">
+    <button class="close-btn" onclick="document.getElementById('tcmSelectModal').style.display = 'none';">&times;</button>
+  <div id="checkbox-group" class="chip-container">
+    <!-- Checkboxes injected here -->
+  </div>
+  </div>
+</div>
     </div>
+
 
     <div id="quiz-container"></div>
 </div>
@@ -1917,6 +1950,54 @@ function renderCards() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+  const group = document.getElementById('checkbox-group');
+
+  // Render Chips
+  internalMed.forEach((item, index) => {
+    const name = item.disease.trim();
+
+    group.innerHTML += `
+      <label class="chip">
+        <input type="checkbox" value="${name}" onchange="selectedDiseases()">
+        ${name}
+      </label>
+    `;
+  });
+
+  function selectedDiseases() {
+    const selected = Array.from(document.querySelectorAll('input:checked')).map(i => i.value);
+    const filtered = internalMed.filter(d => selected.includes(d.disease.trim()));
+
+    studyData = [];
+    filtered.forEach(d => d.syndromes.forEach(s => studyData.push({ disease: d.disease, name: s.name, symptoms: s.symptoms.join('、') })));
+    studyData.sort(() => Math.random() - 0.5);
+
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+    studyData.forEach((item, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="q-num">Flashcard #${i + 1}</div>
+            <div class="symptoms">${item.symptoms}</div>
+            <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
+            <div class="answer-box" onclick='showInfo("${item.disease}")'>
+                <div class="tag-label">DIAGNOSIS</div>
+                <div class="tag-result">${item.disease} — ${item.name}</div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+     
+  }
+
+
+
+
+
+
 
 
 function exportTxt(type) {
@@ -2017,6 +2098,8 @@ function closeModal() {
 
 function closeOnBackdrop(e) {
   if (e.target.id === 'tcmModal') closeModal();
+  if (e.target.id === 'tcmSelectModal') document.getElementById('tcmSelectModal').style.display = 'none';
+
 }
 </script>
 </body>
