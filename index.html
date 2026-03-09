@@ -1939,7 +1939,7 @@ function renderCards() {
         card.className = 'card';
         card.innerHTML = `
             <div class="q-num">Flashcard #${i + 1}</div>
-            <div class="symptoms">${item.symptoms}</div>
+            <div class="symptoms" onclick="speakCantonese('${item.symptoms}')">${item.symptoms}</div>
             <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
             <div class="answer-box" onclick='showInfo("${item.disease}")'>
                 <div class="tag-label">DIAGNOSIS</div>
@@ -1979,8 +1979,8 @@ function renderCards() {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-            <div class="q-num">Flashcard #${i + 1}</div>
-            <div class="symptoms">${item.symptoms}</div>
+            <div class="q-num" >Flashcard #${i + 1}</div>
+            <div class="symptoms" onclick="speakCantonese('${item.symptoms}')">${item.symptoms}</div>
             <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
             <div class="answer-box" onclick='showInfo("${item.disease}")'>
                 <div class="tag-label">DIAGNOSIS</div>
@@ -1990,12 +1990,38 @@ function renderCards() {
         container.appendChild(card);
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
+     // onclick="speakCantonese('${item.symptoms}')"
      
   }
 
 
 
+window.speakCantonese = function(text) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // 1. Get all available voices
+    const voices = window.speechSynthesis.getVoices();
+
+    // 2. Filter for Cantonese (zh-HK) and look for female keywords
+    // Common female names include "Sin-Ji", "HiuGa", or "Ting-Ting"
+    const femaleCantoneseVoice = voices.find(v => 
+        (v.lang === 'zh-HK' || v.lang === 'zh-MO' || v.lang === 'yue-HK') && 
+        (v.name.includes('Female') || v.name.includes('Sin-Ji') || v.name.includes('HiuGa'))
+    );
+
+    if (femaleCantoneseVoice) {
+        utterance.voice = femaleCantoneseVoice;
+    } else {
+        // Fallback to any Cantonese voice if a specific female one isn't found
+        utterance.lang = 'zh-HK';
+    }
+
+    utterance.pitch = 1.1; // Slightly higher pitch often sounds more feminine
+    utterance.rate = 0.9;
+    
+    window.speechSynthesis.speak(utterance);
+};
 
 
 
