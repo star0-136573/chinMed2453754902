@@ -68,9 +68,9 @@ button.disease-trigger:hover {
 
 .modal-box {
   background: white;
-  width: 90%;
-  max-width: 500px;
-  padding: 40px;
+  width: 50%;
+  max-width: 300px;
+  padding: 30px;
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.08);
   position: relative;
@@ -117,7 +117,8 @@ button.disease-trigger:hover {
     background: var(--accent);
     color: white;
   }
-
+          .usage-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .usage-syndrome { color: #d32f2f; background: #fff5f5; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -765,7 +766,7 @@ const internalMed=[
     ]
   },
   {
-    "disease": "噎膈 ",
+    "disease": "噎嗝 ",
     "syndromes": [
       {
         "name": "痰氣交阻 ",
@@ -1773,7 +1774,7 @@ const tcmData = [
   { disease: "腹痛", syndrome: "飲食積滯證", formula: "保濟丸, 枳實導滯丸" },
   { disease: "腹痛", syndrome: "氣滯血瘀證", formula: "柴胡疏肝散, 少腹逐瘀湯" },
   { disease: "腹痛", syndrome: "中虛臟寒證", formula: "小建中湯" },
-  { disease: "便秘", syndrome: "熱秘", formula: "麻子仁丸" },
+  { disease: "便祕", syndrome: "熱秘", formula: "麻子仁丸" },
   { disease: "便祕", syndrome: "氣秘", formula: "六磨湯" },
   { disease: "便祕", syndrome: "氣虛秘", formula: "黃芪湯" },
   { disease: "便祕", syndrome: "血虛秘", formula: "潤腸丸" },
@@ -1797,13 +1798,13 @@ const tcmData = [
   { disease: "積聚 (聚證)", syndrome: "肝氣鬱結", formula: "逍遙散" },
   { disease: "積聚 (聚證)", syndrome: "食滯痰阻", formula: "六磨湯" },
   { disease: "積聚 (積證)", syndrome: "氣滯血阻", formula: "金鈴子散,失笑散" },
-  { disease: "積聚 (積證)", syndrome: "瘀血內結", formula: "膈下逐瘀湯, 蟞甲煎丸+六君子" },
+  { disease: "積聚 (積證)", syndrome: "瘀血內結", formula: "膈下逐瘀湯, 蟞甲煎丸,六君子" },
   { disease: "積聚 (積證)", syndrome: "正虛瘀結", formula: "化積丸, 八珍湯" },
   { disease: "鼓脹", syndrome: "氣滯濕阻證", formula: "柴胡疏肝散,胃苓湯" },
   { disease: "鼓脹", syndrome: "寒濕困脾證", formula: "實脾飲" },
   { disease: "鼓脹", syndrome: "濕熱蘊結證", formula: "中滿分消丸,茵陳蒿湯, 舟車丸" },
   { disease: "鼓脹", syndrome: "肝脾血瘀證", formula: "調營飲" },
-  { disease: "鼓脹", syndrome: "脾腎陽虛證", formula: "附子理中丸+五苓散, 濟生腎氣丸" },
+  { disease: "鼓脹", syndrome: "脾腎陽虛證", formula: "附子理中丸,五苓散, 濟生腎氣丸" },
   { disease: "鼓脹", syndrome: "肝腎陰虛證", formula: "六味地黃丸,一貫煎" },
   { disease: "頭痛", syndrome: "風寒證 (外感)", formula: "川芎茶調散" },
   { disease: "頭痛", syndrome: "風熱證 (外感)", formula: "芎芷石膏湯" },
@@ -1851,7 +1852,7 @@ const tcmData = [
   { disease: "淋證", syndrome: "石淋", formula: "石韋散" },
   { disease: "淋證", syndrome: "氣淋 (實,虛)", formula: "沉香散 , 補中益氣湯, 八珍湯" },
   { disease: "淋證", syndrome: "血淋 (實,虛)", formula: "小薊飲子 , 知柏地黃丸" },
-  { disease: "淋證", syndrome: "膏淋 (實,虛)", formula: "程氏萆薢分清飲 , 補中益氣湯+七味都氣丸" },
+  { disease: "淋證", syndrome: "膏淋 (實,虛)", formula: "程氏萆薢分清飲 , 補中益氣湯,七味都氣丸" },
   { disease: "淋證", syndrome: "勞淋", formula: "無比山藥丸" },
   { disease: "癃閉", syndrome: "膀胱濕熱證", formula: "八正散" },
   { disease: "癃閉", syndrome: "肺熱壅盛證", formula: "清肺飲" },
@@ -1872,7 +1873,7 @@ const tcmData = [
   { disease: "遺精", syndrome: "君相火旺", formula: "黃連清心飲, 天王補心丹, 三才封髓丹" },
   { disease: "遺精", syndrome: "濕熱下注", formula: "程氏萆薢分清飲" },
   { disease: "遺精", syndrome: "勞傷心脾", formula: "妙香散" },
-  { disease: "遺精", syndrome: "腎虛滑脫", formula: "六味地黃, 左歸飲,丸, 金鎖固精丸" },
+  { disease: "遺精", syndrome: "腎虛滑脫", formula: "六味地黃丸, 左歸飲, 金鎖固精丸" },
     { disease: "陽痿", syndrome: "命火衰微", formula: "五子衍宗丸, 贊育丹" },
   { disease: "陽痿", syndrome: "心脾受損", formula: "歸脾湯" },
   { disease: "陽痿", syndrome: "恐懼傷腎", formula: "大補元煎" },
@@ -2080,17 +2081,59 @@ function renderCardsInOrder(){
 function showInfo(name) {
 
    const results = tcmData.filter(d => d.disease === name.trim());
+   
   const content = document.getElementById('modalContent');
-  
-  content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + 
-    results.map(item => `
-      <div class="syndrome-card">
-        <p style="margin:0 0 12px 0; font-weight:600;">${item.syndrome}  :  ${item.formula}</p>    
+
+   
+ // Map the array to a string of HTML
+  const htmlString = results.map(item => {
+    // Split formulas and wrap each in a clickable <span> or <button>
+    const formulaLinks = item.formula.split(',').map(iname => {
+      return `<span 
+                style="color: darkgray; cursor: pointer; text-decoration: underline;" 
+                onclick="formulaFunc('${iname.trim()}')">
+                ${iname.trim()}
+              </span>`;
+    }).join(', ');
+
+    return `
+     <div style="align:center;margin-bottom: 15px;" class="syndrome-card">
+      <div >
+        <strong>${item.syndrome}:</strong> ${formulaLinks}
       </div>
-    `).join('');
+      </div>
+    `;
+  }).join('');
+
+  // Set the innerHTML once to the container
+  content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + htmlString;
+
+  
+  // content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + 
+  //   results.map(item => `
+  //     <div class="syndrome-card">
+  //       <p style="margin:0 0 12px 0; font-weight:600;">${item.syndrome}  :  ${item.formula}</p>    
+  //     </div>
+  //   `).join('');
     
   document.getElementById('tcmModal').style.display = 'flex';
 }
+
+function formulaFunc(name){
+    const matches = tcmData.filter(item => 
+        item.formula.split(/[,，]/).some(f => f.trim() === name)
+    );
+
+   
+    document.getElementById('modalContent').innerHTML = matches.map(m => `
+        <div class="usage-item">
+            <span class="usage-disease">${m.disease}</span>
+            <span class="usage-syndrome">${m.syndrome}</span>
+        </div>
+    `).join('');
+   // document.getElementById('modalOverlay').style.display = 'flex';
+}
+
 
 function closeModal() {
   document.getElementById('tcmModal').style.display = 'none';
