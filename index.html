@@ -1980,7 +1980,7 @@ function renderCards() {
         card.className = 'card';
         card.innerHTML = `
             <div class="q-num" >Flashcard #${i + 1}</div>
-            <div class="symptoms" onclick="speakCantonese('${item.symptoms}')">${item.symptoms}</div>
+            <div class="symptoms"  onclick="speakCantonese('${item.symptoms}')">${item.symptoms}</div>
             <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
             <div class="answer-box" onclick='showInfo("${item.disease}")'>
                 <div class="tag-label">DIAGNOSIS</div>
@@ -1996,32 +1996,30 @@ function renderCards() {
 
 
 
-window.speakCantonese = function(text) {
+function speakCantonese(text) {
+    // 1. Cancel existing speech
     window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // 1. Get all available voices
+    // 2. Set language
+    utterance.lang = 'zh-HK';
+    utterance.rate = 0.9;
+
+    // 3. CRITICAL FOR iOS: Manually find and set a Cantonese voice
+    // iOS often ignores .lang unless the .voice is explicitly set.
     const voices = window.speechSynthesis.getVoices();
-
-    // 2. Filter for Cantonese (zh-HK) and look for female keywords
-    // Common female names include "Sin-Ji", "HiuGa", or "Ting-Ting"
-    const femaleCantoneseVoice = voices.find(v => 
-        (v.lang === 'zh-HK' || v.lang === 'zh-MO' || v.lang === 'yue-HK') && 
-        (v.name.includes('Female') || v.name.includes('Sin-Ji') || v.name.includes('HiuGa'))
-    );
-
-    if (femaleCantoneseVoice) {
-        utterance.voice = femaleCantoneseVoice;
-    } else {
-        // Fallback to any Cantonese voice if a specific female one isn't found
-        utterance.lang = 'zh-HK';
+    const cantoneseVoice = voices.find(v => v.lang === 'zh-HK' || v.lang.includes('yue'));
+    
+    if (cantoneseVoice) {
+        utterance.voice = cantoneseVoice;
     }
 
-    utterance.pitch = 1.1; // Slightly higher pitch often sounds more feminine
-    utterance.rate = 0.9;
-    
+    // 4. Speak
     window.speechSynthesis.speak(utterance);
-};
+}
+
+
 
 
 
