@@ -68,8 +68,8 @@ button.disease-trigger:hover {
 
 .modal-box {
   background: white;
-  width: 50%;
-  max-width: 300px;
+  width: 60%;
+  max-width: 380px;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.08);
@@ -1967,6 +1967,8 @@ function renderCards() {
     `;
   });
 
+
+
   function selectedDiseases() {
     const selected = Array.from(document.querySelectorAll('input:checked')).map(i => i.value);
     const filtered = internalMed.filter(d => selected.includes(d.disease.trim()));
@@ -2084,12 +2086,16 @@ function renderCardsInOrder(){
    
   const container = document.getElementById('quiz-container');
     container.innerHTML = '';
+    let x=0;
     studyData.forEach((item, i) => {
         const card = document.createElement('div');
+        
+        card.id=item.disease.trim();
+        
         card.className = 'card';
         card.innerHTML = `
-            <div class="q-num">Flashcard #${i + 1} <span class="tag-result">${item.disease}<span></div>
-            <div class="symptoms">${item.symptoms}</div>
+            <div  class="q-num">Flashcard #${i + 1} <span class="tag-result"  onclick='randomDisease()'>${item.disease}<span></div>
+            <div class="symptoms" onclick="speakCantonese('${item.symptoms}')">${item.symptoms}</div>
             <button class="btn btn-reveal" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">Check Syndrome</button>
             <div class="answer-box" onclick='showInfo("${item.disease}")'>
                 <div class="tag-label">DIAGNOSIS</div>
@@ -2101,8 +2107,26 @@ function renderCardsInOrder(){
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Generate Unique Buttons
+  
+ // array of numbers from 0 to y
+  let numbers = Array.from({ length: internalMed.length + 1 }, (_, i) => i);
 
+  // 2. Shuffle the array (Fisher-Yates Shuffle)
+  for (let i = numbers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+  }
+
+
+function randomDisease() {
+    let y = numbers.pop();
+    const targetElement = document.getElementById(internalMed[y].disease.trim());
+  if (targetElement) { 
+    
+    targetElement.scrollIntoView();
+  }
+  console.log(numbers.length+'  : '+targetElement);
+}
 
 function showInfo(name) {
 
@@ -2132,7 +2156,7 @@ function showInfo(name) {
   }).join('');
 
   // Set the innerHTML once to the container
-  content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + htmlString;
+  content.innerHTML = `<h2 style="margin-top:0" onclick="showSyndromes('${name}')">${name}</h2>` + htmlString;
 
   
   // content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + 
@@ -2145,6 +2169,23 @@ function showInfo(name) {
   document.getElementById('tcmModal').style.display = 'flex';
 }
 
+function showSyndromes(name){
+    
+const filtered = internalMed.filter(d => name.includes(d.disease));
+
+const content = document.getElementById('modalContent');
+content.innerHTML='';
+
+  const htmlString = filtered[0].syndromes.map(syndrome => `
+    <div class="syndrome-box">
+      <h3>${syndrome.name}</h3>
+         <p>${syndrome.symptoms.map(symptom => `${symptom}`).join(',')} </p> 
+    </div>
+ `).join('');
+
+content.innerHTML=htmlString;
+  }
+
 function formulaFunc(name){
     const matches = tcmData.filter(item => 
         item.formula.split(/[,，]/).some(f => f.trim() === name)
@@ -2153,7 +2194,7 @@ function formulaFunc(name){
    
     document.getElementById('modalContent').innerHTML = matches.map(m => `
         <div class="usage-item">
-            <span class="usage-disease">${m.disease}</span>
+            <span class="usage-disease" >${m.disease}</span>
             <span class="usage-syndrome">${m.syndrome}</span>
         </div>
     `).join('');
