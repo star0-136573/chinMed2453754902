@@ -140,7 +140,9 @@ button.disease-trigger:hover {
     <button class="btn" onclick="document.getElementById('tcmSelectModal').style.display = 'flex';">select Modules</button>
 </div>
 <div id="tcmSelectModal" class="modal-overlay" onclick="closeOnBackdrop(event)">
+  
   <div class="modal-box">
+    <br><br>
     <button class="close-btn" onclick="document.getElementById('tcmSelectModal').style.display = 'none';">&times;</button>
   <div id="checkbox-group" class="chip-container">
     <!-- Checkboxes injected here -->
@@ -1952,11 +1954,11 @@ function renderCards() {
 }
 
   const group = document.getElementById('checkbox-group');
-
+ 
   // Render Chips
   internalMed.forEach((item, index) => {
     const name = item.disease.trim();
-
+    
     group.innerHTML += `
       <label class="chip">
         <input type="checkbox" value="${name}" onchange="selectedDiseases()">
@@ -2004,7 +2006,7 @@ function speakCantonese(text) {
     
     // 2. Set language
     utterance.lang = 'zh-HK';
-    utterance.rate = 0.9;
+    utterance.rate = 0.7;
 
     // 3. CRITICAL FOR iOS: Manually find and set a Cantonese voice
     // iOS often ignores .lang unless the .voice is explicitly set.
