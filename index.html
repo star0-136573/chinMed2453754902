@@ -133,11 +133,11 @@ button.disease-trigger:hover {
     <div class="top-nav">
         <h1 class="title">中醫內科辨證</h1>
 <div class="btn-group">
-    <button class="btn btn-main" onclick="renderCards()">Shuffle Cards</button>
+    <button class="btn btn-main" onclick="shuffleList()">Shuffle Cards</button>
     <button class="btn btn-main" onclick="renderCardsInOrder()">List Cards</button>
-    <button class="btn" onclick="exportTxt('exam')">Download Exam Kit (TXT)</button>
-    <button class="btn" onclick="exportTxt('notes')">Download Study Notes (TXT)</button>
-    <button class="btn" onclick="document.getElementById('tcmSelectModal').style.display = 'flex';">select Modules</button>
+    <button class="btn" onclick="exportTxt('exam')">Download Exam (TXT)</button>
+    <button class="btn" onclick="exportTxt('notes')">Download Notes (TXT)</button>
+    <button class="btn" onclick="document.getElementById('tcmSelectModal').style.display = 'flex';">Modules</button>
 </div>
 <div id="tcmSelectModal" class="modal-overlay" onclick="closeOnBackdrop(event)">
   
@@ -1913,6 +1913,68 @@ const tcmData = [
   { disease: "虛勞", syndrome: "脾陽虛", formula: "附子理中湯" },
   { disease: "虛勞", syndrome: "腎陽虛", formula: "右歸丸" }
 ];
+const iSpell=[
+{name:"感冒",spell : "荆银加蘇減"},
+{name:"咳嗽",spell : "三山桑桑杏杏二三清化白蛤麥"},
+{name:"肺痿",spell : "麥清加甘薑"},
+{name:"肺癰",spell : "银翘千金如金加梗沙清杏仁"},
+{name:"哮病",spell : "射干小清定越玉子金氣"},
+{name:"喘病",spell : "麻麻桑二三五子肺脈金蛤"},
+{name:"肺脹",spell : "蘇三六婢白滌牛寶固補真苓"},
+{name:"肺癆",spell : "月金甲真大"},
+{name:"痰飲",spell : "苓夏甘椒,柴积棗涎花香沙白,小小青龍金匱苓"},
+{name:"懸飲",spell : "苓夏甘椒,柴积棗涎花香沙白,小小青龍金匱苓"},
+{name:"溢飲",spell : "苓夏甘椒,柴积棗涎花香沙白,小小青龍金匱苓"},
+{name:"支飲",spell : "苓夏甘椒,柴积棗涎花香沙白,小小青龍金匱苓"},
+{name:"汗病",spell : "屏枝當龍"},
+{name:"鼻衄",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"齒衄",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"咳血",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"吐血",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"便血",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"尿血",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"紫斑",spell : "桑女龍歸,清心滋西,杏白蛤固,心灰龍歸、榆槐黄土,小薊知脾無比,犀茜歸"},
+{name:"心悸",spell : "安神收皮補朱龍牡苓桃"},
+{name:"不寐",spell : "安枣收皮膠朱龍肝温瞻"},
+{name:"胸痹",spell : "血夏白酒生养左右附"},
+{name:"厥證",spell : "五四通獨養榮導痰鹽術保"},
+{name:"鬱證",spell : "胡逍半厚甘棗歸滋水"},
+{name:"癲狂",spell : "順氣養心落二陰"},
+{name:"癇病",spell : "定癇滌龍大補元"},
+{name:"胃痛",spell : "良和胡化失丹貫芍黄中"},
+{name:"腹痛",spell: "良香濟枳胡少大承建中"},
+{name:"嘔吐",spell : "正氣保和金樸半桂麥門理"},
+{name:"泄瀉",spell : "正氣保和芩蓮痛泻白术神"},
+{name:"噎嗝",spell : "啟汁幽運歸"},
+{name:"呃逆",spell : "香竹五益皮理"},
+{name:"便祕",spell : "麻子六磨黄潤川"},
+{name:"痢疾",spell : "芍薬白頭不換車,桃花真人連理噤"},
+{name:"霍亂",spell : "正氣纯陽附子蠶燃枢"},
+{name:"蟲證",spell : "烏梅化蟲南瓜絳,八珍追蟲檳榔煎"},
+{name:"脅痛",spell:  "柴旋龍一"},
+{name:"黃疸",spell: "茵茵甘露犀附逍遥六"},
+{name:"積聚",spell: "逍遥六磨,金铃失笑,隔鱉六君,化積八珍"},
+{name:"鼓脹",spell: "柴苓消陳車,调营附子五濟,六地貫"},
+{name:"頭痛",spell: "茶调石膏勝濕,天夏通竅大四物"},
+{name:"眩暈",spell: "天夏通竅左收皮"},
+{name:"中風",spell: "大秦镇熄牛羊寶,滌痰蘇合附生脈,補陽解語地黄飲,镇肝息風天钩藤"},
+{name:"痙病",spell: "勝濕增液四大珠"},
+{name:"癭病",spell: "四玉栀藥天王"},
+{name:"瘧疾",spell: "柴虎柴寶清瘴換人"},
+{name:"水腫",spell : "越婢小豆消,五苓鑿實濟真武"},
+{name:"淋證",spell : "八石沉八补,小柏呈七补,→無比山"},
+{name:"癃閉",spell : "八清沉當中春濟"},
+{name:"腰痛",spell : "甘苓四妙身痛左右歸"},
+{name:"消渴",spell : "消渴二冬,玉女六金"},
+{name:"遺精",spell : "黄天三才、程氏妙香、六味歸固精"},
+{name:"陽痿",spell : "五子贊育歸元地"},
+{name:"耳鳴耳聾",spell : "银翘肝膽左慈明"},
+{name:"痹證",spell : "風頭仁白虎宣獨"},
+{name:"痿證",spell : "清燥二妙參中潛"},
+{name:"內傷發熱",spell : "丹氣瘀脾清骨散"},
+{name:"虛勞",spell : "補肺四君養四物,肝心益胃沙左歸,拯陽附子理右歸"},
+
+];
 
 
 
@@ -1925,14 +1987,30 @@ const tcmData = [
 
 
 
+let studyData = JSON.parse(localStorage.getItem('studyData'))||[];
+
+function shuffleList(){
+    if(studyData.length!==0){
+     studyData=[];
+     localStorage.removeItem('studyData');
+
+      renderCards();
+    }
+
+}
 
 
-let studyData = [];
+
+
+
 
 function renderCards() {
-    studyData = [];
+    //studyData = [];
+    if(studyData.length === 0){
     internalMed.forEach(d => d.syndromes.forEach(s => studyData.push({ disease: d.disease, name: s.name, symptoms: s.symptoms.join('、') })));
     studyData.sort(() => Math.random() - 0.5);
+    localStorage.setItem('studyData',JSON.stringify(studyData));
+    }
 
     const container = document.getElementById('quiz-container');
     container.innerHTML = '';
@@ -1967,6 +2045,24 @@ function renderCards() {
     `;
   });
 
+ 
+
+function toggleBookmark(id) {
+  let bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+  
+  if (bookmarks.includes(id)) {
+    bookmarks = bookmarks.filter(itemId => itemId !== id);
+  } else {
+    bookmarks.push(id);
+  }
+  
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+}
+
+function isBookmarked(id) {
+  const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+  return bookmarks.includes(id.toString());
+}
 
 
   function selectedDiseases() {
@@ -2154,10 +2250,13 @@ function showInfo(name) {
       </div>
     `;
   }).join('');
-
+  
+   const spell = iSpell.filter(d => d.name === name.trim());
+  
   // Set the innerHTML once to the container
-  content.innerHTML = `<h2 style="margin-top:0" onclick="showSyndromes('${name}')">${name}</h2>` + htmlString;
-
+  content.innerHTML = `<h2 style="margin-top:0" onclick="showSyndromes('${name}')">${name}</h2>` + 
+  htmlString+`<p>${spell[0].spell}</p>`;
+  
   
   // content.innerHTML = `<h2 style="margin-top:0">${name}</h2>` + 
   //   results.map(item => `
